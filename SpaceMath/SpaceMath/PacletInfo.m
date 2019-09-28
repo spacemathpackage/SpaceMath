@@ -1,11 +1,15 @@
 (* Paclet Info File *)
 
-(* created 2019.09.28*)
+(* created 2019/09/28*)
 
 Paclet[
-  Name -> "SpaceMath",
-  Version -> "0.0.1",
-  MathematicaVersion -> "6+",
-  Extensions -> {
-    {"Documentation", Language -> "English"}
-}]
+    Name -> "SpaceMath",
+    Version -> "1.0",
+    MathematicaVersion -> "10+",
+    Extensions -> 
+        {
+            {"Documentation", Language -> "English"}
+        }
+]
+
+
