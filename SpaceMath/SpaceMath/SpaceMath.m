@@ -63,20 +63,28 @@ Begin["`Private`"]
 
 End[];
 
+listHiggsData = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
+(*
 listKappaXX = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
 listPlotsKappaXX = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
 listParticleData = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
+*)
 
 AppendTo[$ContextPath, "SpaceMath`Package`"];
 
+SMDeclareHeader/@listHiggsData;
+(*
 SMDeclareHeader/@listKappaXX;
 SMDeclareHeader/@listPlotsKappaXX;
 SMDeclareHeader/@listParticleData;
+*)
 
+Get/@listHiggsData;
+(*
 Get/@listKappaXX;
 Get/@listPlotsKappaXX;
 Get/@listParticleData;
-
+*)
 EndPackage[];
 
 (* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
