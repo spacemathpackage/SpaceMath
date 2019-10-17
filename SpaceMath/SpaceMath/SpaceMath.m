@@ -42,13 +42,13 @@ SpaceMath::usage =
 For a list of availabe objects type $FeynCalcStuff, \
 which contains a list of all functions and options in StringForm. \
 You can get on-line information by ?function, e.g. ?Contract.\n
-There are several useful functions for short input, type $FCS for a list of \
+There are several useful functions for short input, type $SMS for a list of \
 short commands. Then type, e.g., ?GA.\n\n
 To enable/disable start-up messages, put the line\n
 $SpaceMathStartupMessages = True;\n
 or\n
 $SpaceMathStartupMessages = False;\n
-into your \"init.m\" file or into your \"FCConfig.m\" file."
+into your \"init.m\" file or into your \"SMConfig.m\" file."
 
 $SpaceMathStuff::usage =
 "$FeynCalcStuff is the list of availabe stuff in FeynCalc.";
@@ -66,11 +66,11 @@ accepted by function.  When an option occurs several times in opts, the first \
 setting is selected";
 
 UseWriteString::usage =
-"UseWriteString is an option for FCPrint. If set to True,
+"UseWriteString is an option for SMPrint. If set to True,
 the expression is printed via WriteString instead of Print.";
 
 WriteStringOutput::usage =
-"UseWriteStringOutput an option for FCPrint. It specifies, to which
+"UseWriteStringOutput an option for SMPrint. It specifies, to which
 stream WriteString should output the expression";
 
 SpaceMath::faerror =
@@ -91,36 +91,36 @@ typeseting rules that make various objects like Lorentz vectors or \
 Dirac matrices look nicer. To change the format type go to \
 Edit->Preferences->Evaluation.";
 
-FCMonitor::usage =
-"FCMonitor is a simple function that activates Monitor if there
+SMMonitor::usage =
+"SMMonitor is a simple function that activates Monitor if there
 is a notebook interface available and disables it otherwise.";
 
-FCMonitorStub::usage =
-"FCMonitorStub is a stub for Monitor when the notebook interface
+SMMonitorStub::usage =
+"SMMonitorStub is a stub for Monitor when the notebook interface
 is not available";
 
-FCDoControl::usage =
-"FCDoControl is an option for FCPrint that specifies which variable
-is used to control the debugging output of FCPrint. The default value
+SMDoControl::usage =
+"SMDoControl is an option for SMPrint that specifies which variable
+is used to control the debugging output of SMPrint. The default value
 is $VeryVerbose.";
 
-FCDeclareHeader::usage =
-"FCDeclareHeader is an internal FeynCalc function to declare
+SMDeclareHeader::usage =
+"SMDeclareHeader is an internal FeynCalc function to declare
 objects inside an .m file in the same manner as it is done in
 the JLink package. It may be used by FeynCalc addons."
 
 Begin["`Private`"]
 
-SetAttributes[FCPrint, HoldRest];
+SetAttributes[SMPrint, HoldRest];
 
-Options[FCPrint] = {
-		FCDoControl :> $VeryVerbose,
+Options[SMPrint] = {
+		SMDoControl :> $VeryVerbose,
 		UseWriteString -> False,
 		WriteStringOutput ->"stdout"
 }
 
-FCPrint[level_, fcprintx__ /;!OptionQ[{fcprintx}] , OptionsPattern[]] :=
-	Block[{flowcontrol=OptionValue[FCDoControl]},
+SMPrint[level_, fcprintx__ /;!OptionQ[{fcprintx}] , OptionsPattern[]] :=
+	Block[{flowcontrol=OptionValue[SMDoControl]},
 		If[ flowcontrol >= level,
 			If[ OptionValue[UseWriteString],
 				WriteString[OptionValue[WriteStringOutput],fcprintx],
@@ -129,13 +129,13 @@ FCPrint[level_, fcprintx__ /;!OptionQ[{fcprintx}] , OptionsPattern[]] :=
 		]
 	];
 
-FCMonitor:=
-	If[$Notebooks && $FCCheckProgress, Monitor, FCMonitorStub];
+SMMonitor:=
+	If[$Notebooks && $SMCheckProgress, Monitor, SMMonitorStub];
 
-FCMonitorStub[x_,__]:=
+SMMonitorStub[x_,__]:=
 	x;
 
-FCDeclareHeader[file_] :=
+SMDeclareHeader[file_] :=
 	Module[ {strm, einput, moreLines = True},
 		strm = OpenRead[file];
 		If[ Head[strm] =!= InputStream,
@@ -160,7 +160,7 @@ listMisc = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
 
 AppendTo[$ContextPath, "SpaceMath`Package`"];
 
-FCDeclareHeader/@listMisc;
+SMDeclareHeader/@listMisc;
 
 Get/@listMisc;
 
@@ -181,7 +181,7 @@ Print [Style["Facultad de Ciencias F\[IAcute]sico Matem\[AAcute]ticas, Benem\[EA
 
 BeginPackage["SpaceMath`"];
 If[ Global`$LoadAddOns=!={},
-	FCDeclareHeader/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns];
+	SMDeclareHeader/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns];
 	Get/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns]
 ];
 EndPackage[];
