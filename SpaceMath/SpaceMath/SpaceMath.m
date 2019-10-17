@@ -1,20 +1,5 @@
 (* ::Package:: *)
 
-(* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
-
-(* :Title: SpaceMath															*)
-
-(*
-	This software is covered by the GNU General Public License 3.
-*)
-
-(* :Summary:	We present a Mathematica application, so-called SpaceMath, 
-				for the search of Beyond Standard Model (BSM) parameter spaces 
-				which be agree with the most up-to-date experimental measurements.			*)
-
-(* ------------------------------------------------------------------------ *)
-
-
 If[ MemberQ[$Packages,"SpaceMath`"],
 	Print["SpaceMath is already loaded! To reload it, please restart the kernel."];
 	Abort[]
@@ -38,17 +23,11 @@ If[ FileNames["*",{SpaceMath`$SpaceMathDirectory}] === {},
 ];
 
 (*    Set the version number    *)
-SpaceMath`$SpaceMathVersion = "10.0";
+SpaceMath`$SpaceMathVersion = "1.0";
 
 (*    Set defaults here, not in the config file    *)
 If[ !ValueQ[Global`$SpaceMathStartupMessages],
 	Global`$SpaceMathStartupMessages = True
-];
-
-
-(*    Load configuration file    *)
-If[ FileExistsQ[FileNameJoin[{SpaceMath`$SpaceMathDirectory,"SMConfig.m"}]],
-	Get[FileNameJoin[{SpaceMath`$SpaceMathDirectory,"SMConfig.m"}]]
 ];
 
 If[ Global`$SpaceMathStartupMessages=!=False,
@@ -56,64 +35,195 @@ If[ Global`$SpaceMathStartupMessages=!=False,
 	SpaceMath`$SpaceMathDirectory, "Text"]]
 ];
 
-
 BeginPackage["SpaceMath`"];
+
+SpaceMath::usage =
+"For installation notes visit www.feyncalc.org\n
+For a list of availabe objects type $FeynCalcStuff, \
+which contains a list of all functions and options in StringForm. \
+You can get on-line information by ?function, e.g. ?Contract.\n
+There are several useful functions for short input, type $FCS for a list of \
+short commands. Then type, e.g., ?GA.\n\n
+To enable/disable start-up messages, put the line\n
+$SpaceMathStartupMessages = True;\n
+or\n
+$SpaceMathStartupMessages = False;\n
+into your \"init.m\" file or into your \"FCConfig.m\" file."
+
+$SpaceMathStuff::usage =
+"$FeynCalcStuff is the list of availabe stuff in FeynCalc.";
+
+$SpaceMathVersion::usage =
+"$FeynCalcVersion is a string that represents the version of FeynCalc.";
+
+MakeSpaceMathPrivateContext::usage =
+"MakeFeynCalcPrivateContext[val] constructs
+SpaceMath`Private`val.";
+
+OptionsSelect::usage =
+"OptionsSelect[function,opts] returns the option settings of opts \
+accepted by function.  When an option occurs several times in opts, the first \
+setting is selected";
+
+UseWriteString::usage =
+"UseWriteString is an option for FCPrint. If set to True,
+the expression is printed via WriteString instead of Print.";
+
+WriteStringOutput::usage =
+"UseWriteStringOutput an option for FCPrint. It specifies, to which
+stream WriteString should output the expression";
+
+SpaceMath::faerror =
+"FeynArts not found or damaged. Please download the FeynArts \
+tarball from www.feynarts.de, unpack it to `1` and restart FeynCalc.";
+
+SpaceMath::taerror =
+"TARCER*.mx file not found or damaged. Please evaluate the command \
+GenerateTarcerMX to create it.";
+
+SpaceMath::phierror =
+"PHI failed to load. Please try resintalling FeynCalc.";
+
+SpaceMath::tfadvice =
+"You are not using TraditionalForm as the default format type of new \
+output cells. Without TraditionalForm FeynCalc cannot use built-in \
+typeseting rules that make various objects like Lorentz vectors or \
+Dirac matrices look nicer. To change the format type go to \
+Edit->Preferences->Evaluation.";
+
+FCMonitor::usage =
+"FCMonitor is a simple function that activates Monitor if there
+is a notebook interface available and disables it otherwise.";
+
+FCMonitorStub::usage =
+"FCMonitorStub is a stub for Monitor when the notebook interface
+is not available";
+
+FCDoControl::usage =
+"FCDoControl is an option for FCPrint that specifies which variable
+is used to control the debugging output of FCPrint. The default value
+is $VeryVerbose.";
+
+FCDeclareHeader::usage =
+"FCDeclareHeader is an internal FeynCalc function to declare
+objects inside an .m file in the same manner as it is done in
+the JLink package. It may be used by FeynCalc addons."
 
 Begin["`Private`"]
 
+SetAttributes[FCPrint, HoldRest];
+
+Options[FCPrint] = {
+		FCDoControl :> $VeryVerbose,
+		UseWriteString -> False,
+		WriteStringOutput ->"stdout"
+}
+
+FCPrint[level_, fcprintx__ /;!OptionQ[{fcprintx}] , OptionsPattern[]] :=
+	Block[{flowcontrol=OptionValue[FCDoControl]},
+		If[ flowcontrol >= level,
+			If[ OptionValue[UseWriteString],
+				WriteString[OptionValue[WriteStringOutput],fcprintx],
+				Print[fcprintx]
+			]
+		]
+	];
+
+FCMonitor:=
+	If[$Notebooks && $FCCheckProgress, Monitor, FCMonitorStub];
+
+FCMonitorStub[x_,__]:=
+	x;
+
+FCDeclareHeader[file_] :=
+	Module[ {strm, einput, moreLines = True},
+		strm = OpenRead[file];
+		If[ Head[strm] =!= InputStream,
+			Return[$Failed]
+		];
+		While[
+			moreLines,
+			einput = Read[strm, Hold[Expression]];
+			ReleaseHold[einput];
+			If[ einput === $Failed || MatchQ[einput, Hold[_End]],
+				moreLines = False
+			]
+		];
+		Close[file]
+	];
+
+
+FI :=
+	(Format[LineBreak[_]] :=
+		"";
+	$PrePrint = InputForm;);
+TBox[] =
+	"\[Null]";
+TBox[a_] :=
+	ToBoxes[a, TraditionalForm];
+TBox[a_,b__] :=
+	RowBox @ Map[(ToBoxes @@ {#, TraditionalForm})&, {a, b}];
+
+l[w_Integer] :=
+	l[w] =
+		Block[ {pre},
+			If[ !MatchQ[pre = $IndexPrefix,{_String,_String}],
+				pre = {ToString[Unique["l"]], ToString[Unique["c"]]}
+			];
+			ToExpression[pre[[1]]<>ToString[w]]
+		];
+
+c[w_Integer] :=
+	c[w] =
+		Block[ {pre},
+			If[ !MatchQ[pre = $IndexPrefix,{_String,_String}],
+				pre = {ToString[Unique["l"]], ToString[Unique["c"]]}
+			];
+			ToExpression[pre[[2]]<>ToString[w]]
+		];
+
+(*TODO: Get rid of OptionsSelect everywhere. Use FilterRules[opts, Options[function]] instead *)
+OptionsSelect[function_, opts___] :=
+	Select[(Cases[{opts}, _Rule|_RuleDelayed, Infinity] //.
+	{{a___, b_ -> c_, d___, b_ -> e_, f___} -> {a, b -> c, d, f},
+	{a___, b_ :> c_, d___, b_ :> e_, f___} -> {a, b :> c, d, f}}),
+	(!FreeQ[#, (Options[function] /.
+						{((a_ -> b_) | (a_ :> b_)) -> ((a -> _) | (a :> _))} /.
+							List -> Alternatives)])&];
+
+MakeFeynCalcPrivateContext[x_String] :=
+	MakeFeynCalcPrivateContext[x] =	ToExpression["SpaceMath`Private`"<>x];
+
 End[];
 
-listHiggsData = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
-(*
-listKappaXX = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
-listPlotsKappaXX = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
-listParticleData = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
-*)
+listMisc = FileNames[{"*.m"},ToFileName[{$SpaceMathDirectory,"HiggsData"}]];
 
 AppendTo[$ContextPath, "SpaceMath`Package`"];
 
-SMDeclareHeader/@listHiggsData;
-(*
-SMDeclareHeader/@listKappaXX;
-SMDeclareHeader/@listPlotsKappaXX;
-SMDeclareHeader/@listParticleData;
-*)
+FCDeclareHeader/@listMisc;
 
-Get/@listHiggsData;
-(*
-Get/@listKappaXX;
-Get/@listPlotsKappaXX;
-Get/@listParticleData;
-*)
+Get/@listMisc;
+
 EndPackage[];
 
 (* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
 
-(* Print SpaceMath's startup message *)
+(* Print FeynCalc's startup message *)
 If[ Global`$SpaceMathStartupMessages =!= False,
-	Print[	Style["SpaceMath ", "Text", Bold], Style[$SpaceMathVersion <> ". For help, use the ",
-				"Text"],
-			Style[DisplayForm@ButtonBox["documentation center", BaseStyle->"Link", ButtonData :> "paclet:SpaceMath/",
-				ButtonNote -> "paclet:SpaceMath/"], "Text"],
-			Style[", check out the ", "Text"],
-			Style[DisplayForm@ButtonBox["wiki",ButtonData :> {URL["https://github.com/spacemathpackage/SpaceMath/wiki/SpaceMath"], None},BaseStyle -> "Hyperlink",
-				ButtonNote -> "https://github.com/spacemathpackage/SpaceMath/wiki/SpaceMath"],"Text"],
-			Style[" or write to the ", "Text"],
-			Style[DisplayForm@ButtonBox["mailing list.",ButtonData :> {URL["http://www.SpaceMath.org/forum/"], None},BaseStyle -> "Hyperlink",
-				ButtonNote -> "http://www.SpaceMath.org/forum/"],"Text"]];
-	Print[ Style["See also the supplied ","Text"],
-
-	Style[DisplayForm@ButtonBox["examples.", BaseStyle -> "Hyperlink",	ButtonFunction :>
-							SystemOpen[FileNameJoin[{$SpaceMathDirectory, "Examples"}]],
-							Evaluator -> Automatic, Method -> "Preemptive"], "Text"],
-	Style[" If you use SpaceMath in your research, please cite","Text"]];
 Print [Style["M. A. Arroyo-Ure\[NTilde]a","Text"]];
 Print [Style["Facultad de Estudios Superiores-Cuautitl\[AAcute]n, Universidad Nacional Aut\[OAcute]noma de M\[EAcute]xico","Text"]];
+
 Print [Style["E. A. Herrera-Chac\[OAcute]n","Text"]];
 Print [Style["T. A. Valencia-P\[EAcute]rez","Text"]];
 Print [Style["Facultad de Ciencias F\[IAcute]sico Matem\[AAcute]ticas, Benem\[EAcute]rita Universidad Aut\[OAcute]noma de Puebla","Text"]];
+
 	];
 
 BeginPackage["SpaceMath`"];
-
+If[ Global`$LoadAddOns=!={},
+	FCDeclareHeader/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns];
+	Get/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns]
+];
 EndPackage[];
+
+
