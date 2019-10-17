@@ -153,46 +153,6 @@ FCDeclareHeader[file_] :=
 	];
 
 
-FI :=
-	(Format[LineBreak[_]] :=
-		"";
-	$PrePrint = InputForm;);
-TBox[] =
-	"\[Null]";
-TBox[a_] :=
-	ToBoxes[a, TraditionalForm];
-TBox[a_,b__] :=
-	RowBox @ Map[(ToBoxes @@ {#, TraditionalForm})&, {a, b}];
-
-l[w_Integer] :=
-	l[w] =
-		Block[ {pre},
-			If[ !MatchQ[pre = $IndexPrefix,{_String,_String}],
-				pre = {ToString[Unique["l"]], ToString[Unique["c"]]}
-			];
-			ToExpression[pre[[1]]<>ToString[w]]
-		];
-
-c[w_Integer] :=
-	c[w] =
-		Block[ {pre},
-			If[ !MatchQ[pre = $IndexPrefix,{_String,_String}],
-				pre = {ToString[Unique["l"]], ToString[Unique["c"]]}
-			];
-			ToExpression[pre[[2]]<>ToString[w]]
-		];
-
-(*TODO: Get rid of OptionsSelect everywhere. Use FilterRules[opts, Options[function]] instead *)
-OptionsSelect[function_, opts___] :=
-	Select[(Cases[{opts}, _Rule|_RuleDelayed, Infinity] //.
-	{{a___, b_ -> c_, d___, b_ -> e_, f___} -> {a, b -> c, d, f},
-	{a___, b_ :> c_, d___, b_ :> e_, f___} -> {a, b :> c, d, f}}),
-	(!FreeQ[#, (Options[function] /.
-						{((a_ -> b_) | (a_ :> b_)) -> ((a -> _) | (a :> _))} /.
-							List -> Alternatives)])&];
-
-MakeFeynCalcPrivateContext[x_String] :=
-	MakeFeynCalcPrivateContext[x] =	ToExpression["SpaceMath`Private`"<>x];
 
 End[];
 
