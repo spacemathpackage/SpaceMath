@@ -1,27 +1,5 @@
 (* ::Package:: *)
 
-If[ MemberQ[$Packages,"SpaceMath`"],
-	Print["SpaceMath is already loaded! To reload it, please restart the kernel."];
-	Abort[]
-];
-
-If[ ($VersionNumber < 10.0),
-	Print["You need at least Mathematica 10.0 to run SpaceMath. Quitting the Mathematica kernel."];
-	Abort[]
-];
-
-(*    Find out where SpaceMath is installed    *)
-If[ !ValueQ[SpaceMath`$SpaceMathDirectory],
-	SpaceMath`$SpaceMathDirectory =
-	DirectoryName[$InputFileName]
-];
-
-If[ FileNames["*",{SpaceMath`$SpaceMathDirectory}] === {},
-	Print["Could not find a SpaceMath installation. Quitting the Mathematica kernel."];
-	Clear[SpaceMath`$SpaceMathDirectory];
-	Abort[];
-];
-
 BeginPackage["SpaceMath`"];
 
 SpaceMath::usage =
@@ -75,11 +53,7 @@ Print [Style["E. A. Herrera-Chac\[OAcute]n","Text"]];
 Print [Style["T. A. Valencia-P\[EAcute]rez","Text"]];
 Print [Style["Facultad de Ciencias F\[IAcute]sico Matem\[AAcute]ticas, Benem\[EAcute]rita Universidad Aut\[OAcute]noma de Puebla","Text"]];
 
-BeginPackage["SpaceMath`"];
-If[ Global`$LoadAddOns=!={},
-	SMDeclareHeader/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns];
-	Get/@Map[ToFileName[{$SpaceMathDirectory,  "AddOns",#},#<>".m"] &, Global`$LoadAddOns]
-];
+
 EndPackage[];
 
 
